@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Back</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Helvetica', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+        }
+        h2 { color: #333; font-weight: normal; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .g_id_signin { display: flex; justify-content: center; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Welcome Back</h2>
+        <p>Please sign in to access the visualization.</p>
+
+        <div id="g_id_onload"
+             data-client_id="317330317490-4a2mh5gnhdrafmqrppkiut0ujva0h31u.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="filled_blue"
+             data-text="signin_with"
+             data-size="large"
+             data-logo_alignment="left"
+             data-width="250">
+        </div>
+    </div>
+
+    <script>
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+            
+            // --- THE CRITICAL FIX ---
+            // This points to the EXACT location of your 3D file on GitHub.
+            window.location.href = "/examples/css3d_periodictable.html"; 
+        }
+    </script>
+
+</body>
+</html>
