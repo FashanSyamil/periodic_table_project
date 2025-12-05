@@ -45,7 +45,7 @@
         .element .country {
             position: absolute;
             top: 10px;
-            left: 20px; /* Aligned with left edge of 100px picture */
+            left: 20px; 
             font-size: 10px;
             font-weight: bold;
             color: rgba(127,255,255,0.75);
@@ -55,7 +55,7 @@
         .element .age {
             position: absolute;
             top: 10px;
-            right: 20px; /* Aligned with right edge of 100px picture */
+            right: 20px; 
             font-size: 10px;
             font-weight: bold;
             color: rgba(127,255,255,0.75);
@@ -69,8 +69,6 @@
             object-fit: cover;
             border: 2px solid rgba(127,255,255,0.5);
             background-color: #000;
-            
-            /* Pushes the picture down away from the top labels */
             margin-top: 15px; 
             margin-bottom: 5px; 
         }
@@ -121,6 +119,7 @@
         <button id="sphere">SPHERE</button>
         <button id="helix">HELIX</button>
         <button id="grid">GRID</button>
+        <button id="tetrahedron">TETRAHEDRON</button>
     </div>
     
     <script type="importmap">
@@ -145,7 +144,8 @@
         let controls;
         
         const objects = [];
-        const targets = { table: [], sphere: [], helix: [], grid: [] };
+        // ADDED 'tetrahedron' TO TARGETS
+        const targets = { table: [], sphere: [], helix: [], grid: [], tetrahedron: [] };
         
         async function loadData() {
             const API_URL = "https://script.google.com/macros/s/AKfycbwCONwNuahsiaKLNOAd5izbnzijmHhZ8zh32kYomd94d93yFoCrS_dgm5svu_o78g/exec";
@@ -166,59 +166,53 @@
             
             scene = new THREE.Scene();
             
-            // table
-            
+            // --- CREATE TILES ---
             for (let i = 0; i < peopleData.length; i++) {
                 const person = peopleData[i];
 
-                // ----- CREATE TILE -----
                 const element = document.createElement('div');
                 element.className = 'element';
 
                 function getColor(nw) {
-                    // Green: #3A9F48
-                    if (nw > 200000) return "rgba(58,159,72,0.6)";
-                    // Yellow: #FDCA35
-                    if (nw > 100000) return "rgba(253,202,53,0.6)";
-                    // Red: #EF3022
-                    return "rgba(239,48,34,0.6)";
+                    if (nw > 200000) return "rgba(58,159,72,0.6)"; // Green
+                    if (nw > 100000) return "rgba(253,202,53,0.6)"; // Yellow
+                    return "rgba(239,48,34,0.6)"; // Red
                 }
 
                 const netWorth = Number(String(person["Net Worth"]).replace(/[^0-9.-]+/g, ""));
                 element.style.backgroundColor = getColor(netWorth);
 
-                // --- 1. COUNTRY (Top Left) ---
+                // Country
                 const country = document.createElement('div');
                 country.className = 'country';
                 country.textContent = person.Country;
                 element.appendChild(country);
 
-                // --- 2. AGE (Top Right) ---
+                // Age
                 const age = document.createElement('div');
                 age.className = 'age';
                 age.textContent = person.Age;
                 element.appendChild(age);
 
-                // --- 3. PICTURE (Middle, Biggest) ---
+                // Picture
                 const img = document.createElement('img');
                 img.className = 'pic';
-                // Using the 'Photo' field from Google Sheet
                 img.src = person.Photo; 
                 element.appendChild(img);
 
-                // --- 4. NAME (Under Picture) ---
+                // Name
                 const name = document.createElement('div');
                 name.className = 'name';
                 name.textContent = person.Name;
                 element.appendChild(name);
 
-                // --- 5. INTEREST (Under Name) ---
+                // Interest
                 const interest = document.createElement('div');
                 interest.className = 'interest';
                 interest.textContent = person.Interest || "Investing"; 
                 element.appendChild(interest);
 
-                // 3D OBJECT
+                // 3D Object
                 const objectCSS = new CSS3DObject(element);
                 objectCSS.position.x = Math.random() * 4000 - 2000;
                 objectCSS.position.y = Math.random() * 4000 - 2000;
@@ -228,7 +222,7 @@
                 objects.push(objectCSS);
             }
 
-            // ----- TARGET POSITIONS (TABLE LAYOUT) -----
+            // --- TABLE LAYOUT ---
             const cols = 20; 
             const rows = 10; 
             const spacingX = 160; 
@@ -244,9 +238,8 @@
                 targets.table.push(object);
             }
 
-            // sphere
+            // --- SPHERE LAYOUT ---
             const vector = new THREE.Vector3();
-            
             for ( let i = 0, l = objects.length; i < l; i ++ ) {
                 const phi = Math.acos( - 1 + ( 2 * i ) / l );
                 const theta = Math.sqrt( l * Math.PI ) * phi;
@@ -257,15 +250,12 @@
                 targets.sphere.push( object );
             }
             
-            // helix
+            // --- HELIX LAYOUT ---
             for ( let i = 0, l = objects.length; i < l; i ++ ) {
-                // Double Helix logic
                 const theta = i * 0.175 + Math.PI + ( i % 2 ) * Math.PI;
                 const y = - ( i * 8 ) + 450;
-                
                 const object = new THREE.Object3D();
                 object.position.setFromCylindricalCoords( 900, theta, y );
-                
                 vector.x = object.position.x * 2;
                 vector.y = object.position.y;
                 vector.z = object.position.z * 2;
@@ -273,82 +263,97 @@
                 targets.helix.push( object );
             }
             
-            // --- GRID (UPDATED TO 5x4x10) ---
+            // --- GRID LAYOUT ---
             for ( let i = 0; i < objects.length; i ++ ) {
                 const object = new THREE.Object3D();
-                
-                // X: 5 columns (0-4). Centered by subtracting 800 ((5-1)*400/2)
                 object.position.x = ( ( i % 5 ) * 400 ) - 800;
-                
-                // Y: 4 rows (0-3). Centered by adding 600 ((4-1)*400/2)
-                // Note: 5*4 = 20 items per slice
                 object.position.y = ( - ( Math.floor( i / 5 ) % 4 ) * 400 ) + 600;
-                
-                // Z: Depth layers. New layer every 20 items.
                 object.position.z = ( Math.floor( i / 20 ) ) * 1000 - 2000;
-                
                 targets.grid.push( object );
             }
+
+            // --- TETRAHEDRON LAYOUT (FIXED ROTATION) ---
+            let count = 0;
+            let layer = 1; 
             
-            //
+            while(count < objects.length) {
+                for (let r = 0; r < layer; r++) {
+                    for (let c = 0; c <= r; c++) {
+                        if (count >= objects.length) break;
+
+                        const object = new THREE.Object3D();
+                        const spread = 180; 
+                        
+                        // Position logic remains the same (Pyramid Shape)
+                        object.position.y = 800 - (layer * 160);
+                        const zOffset = ((layer-1) * spread * 0.866) / 2;
+                        object.position.z = (r * spread * 0.866) - zOffset;
+                        const xOffset = (r * spread) / 2;
+                        object.position.x = (c * spread) - xOffset;
+
+                        // --- THE FIX ---
+                        // Instead of looking outward, we lock the rotation to 0,0,0
+                        // This makes them all face "Front" (towards the camera)
+                        object.rotation.set(0, 0, 0); 
+
+                        targets.tetrahedron.push(object);
+                        count++;
+                    }
+                    if (count >= objects.length) break;
+                }
+                layer++;
+            }
+            
+            // --- RENDERER & CONTROLS ---
             renderer = new CSS3DRenderer();
             renderer.setSize( window.innerWidth, window.innerHeight );
             document.getElementById( 'container' ).appendChild( renderer.domElement );
             
-            //
             controls = new TrackballControls( camera, renderer.domElement );
             controls.minDistance = 500;
             controls.maxDistance = 6000;
             controls.addEventListener( 'change', render );
             
+            // --- BUTTON EVENTS ---
             const buttonTable = document.getElementById( 'table' );
-            buttonTable.addEventListener( 'click', function () {
-                transform( targets.table, 2000 );
-            } );
+            buttonTable.addEventListener( 'click', function () { transform( targets.table, 2000 ); } );
             
             const buttonSphere = document.getElementById( 'sphere' );
-            buttonSphere.addEventListener( 'click', function () {
-                transform( targets.sphere, 2000 );
-            } );
+            buttonSphere.addEventListener( 'click', function () { transform( targets.sphere, 2000 ); } );
             
             const buttonHelix = document.getElementById( 'helix' );
-            buttonHelix.addEventListener( 'click', function () {
-                transform( targets.helix, 2000 );
-            } );
+            buttonHelix.addEventListener( 'click', function () { transform( targets.helix, 2000 ); } );
             
             const buttonGrid = document.getElementById( 'grid' );
-            buttonGrid.addEventListener( 'click', function () {
-                transform( targets.grid, 2000 );
-            } );
+            buttonGrid.addEventListener( 'click', function () { transform( targets.grid, 2000 ); } );
+
+            // NEW BUTTON LISTENER
+            const buttonTetra = document.getElementById( 'tetrahedron' );
+            buttonTetra.addEventListener( 'click', function () { transform( targets.tetrahedron, 2000 ); } );
             
             transform( targets.table, 2000 );
             
-            //
             window.addEventListener( 'resize', onWindowResize );
         }
         
         function transform( targets, duration ) {
             TWEEN.removeAll();
-            
             for ( let i = 0; i < objects.length; i ++ ) {
                 const object = objects[ i ];
                 const target = targets[ i ];
-                
                 new TWEEN.Tween( object.position )
-                .to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
-                .easing( TWEEN.Easing.Exponential.InOut )
-                .start();
-                
+                    .to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+                    .easing( TWEEN.Easing.Exponential.InOut )
+                    .start();
                 new TWEEN.Tween( object.rotation )
-                .to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
-                .easing( TWEEN.Easing.Exponential.InOut )
-                .start();
+                    .to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+                    .easing( TWEEN.Easing.Exponential.InOut )
+                    .start();
             }
-            
             new TWEEN.Tween( this )
-            .to( {}, duration * 2 )
-            .onUpdate( render )
-            .start();
+                .to( {}, duration * 2 )
+                .onUpdate( render )
+                .start();
         }
         
         function onWindowResize() {
